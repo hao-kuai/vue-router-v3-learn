@@ -1,9 +1,11 @@
 // When changing thing, also edit router.d.ts
+
+// 导航失败类型
 export const NavigationFailureType = {
-  redirected: 2,
-  aborted: 4,
-  cancelled: 8,
-  duplicated: 16
+  redirected: 2, // 重定向
+  aborted: 4, // 中止
+  cancelled: 8, // 取消
+  duplicated: 16// 重复
 }
 
 export function createNavigationRedirectedError (from, to) {

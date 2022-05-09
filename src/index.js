@@ -19,12 +19,19 @@ import type { Matcher } from './create-matcher'
 import { isNavigationFailure, NavigationFailureType } from './util/errors'
 
 export default class VueRouter {
+  /* 静态方法或者属性，只能通过类访问 */
+  // Vue 插件必须提供您的方法
   static install: () => void
+  // 版本号
   static version: string
+  // 判断是否导航失败
   static isNavigationFailure: Function
+  // 导航失败类型
   static NavigationFailureType: any
+  // 起始路由
   static START_LOCATION: Route
 
+  // 公开属性：通过实例访问
   app: any
   apps: Array<any>
   ready: boolean
@@ -38,9 +45,13 @@ export default class VueRouter {
   resolveHooks: Array<?NavigationGuard>
   afterHooks: Array<?AfterNavigationHook>
 
+  // 构造函数
   constructor (options: RouterOptions = {}) {
     if (process.env.NODE_ENV !== 'production') {
-      warn(this instanceof VueRouter, `Router must be called with the new operator.`)
+      warn(
+        this instanceof VueRouter,
+        `Router must be called with the new operator.`
+      )
     }
     this.app = null
     this.apps = []
@@ -120,7 +131,7 @@ export default class VueRouter {
     const history = this.history
 
     if (history instanceof HTML5History || history instanceof HashHistory) {
-      const handleInitialScroll = routeOrError => {
+      const handleInitialScroll = (routeOrError) => {
         const from = history.current
         const expectScroll = this.options.scrollBehavior
         const supportsScroll = supportsPushState && expectScroll
@@ -129,7 +140,7 @@ export default class VueRouter {
           handleScroll(this, routeOrError, from, false)
         }
       }
-      const setupListeners = routeOrError => {
+      const setupListeners = (routeOrError) => {
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
@@ -140,33 +151,41 @@ export default class VueRouter {
       )
     }
 
-    history.listen(route => {
-      this.apps.forEach(app => {
+    history.listen((route) => {
+      this.apps.forEach((app) => {
         app._route = route
       })
     })
   }
 
+  // 全局前置守卫
   beforeEach (fn: Function): Function {
     return registerHook(this.beforeHooks, fn)
   }
 
+  // 全局解析守卫
   beforeResolve (fn: Function): Function {
     return registerHook(this.resolveHooks, fn)
   }
 
+  // 全局后置钩子
   afterEach (fn: Function): Function {
     return registerHook(this.afterHooks, fn)
   }
 
+  // 1. 该方法把一个回调排队，在路由完成初始导航时调用，
+  // 2. 这意味着它可以解析所有的异步进入钩子和路由初始化相关联的异步组件。
+  // 3. 可以有效确保服务端渲染时服务端和客户端输出的一致。
   onReady (cb: Function, errorCb?: Function) {
     this.history.onReady(cb, errorCb)
   }
 
+  // 注册一个回调，该回调会在路由导航过程中出错时被调用
   onError (errorCb: Function) {
     this.history.onError(errorCb)
   }
 
+  // 导航到新的URL；会向 history 栈添加一个新的记录；
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
     // $flow-disable-line
     if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
@@ -178,6 +197,7 @@ export default class VueRouter {
     }
   }
 
+  // 导航到新的URL；不会向 history 添加新记录，替换掉当前的 history 记录；
   replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
     // $flow-disable-line
     if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
@@ -189,18 +209,23 @@ export default class VueRouter {
     }
   }
 
+  // 在 history 记录中向前或者后退多少步
   go (n: number) {
     this.history.go(n)
   }
 
+  // 在 history 记录中后退多少步
   back () {
     this.go(-1)
   }
 
+  // 在 history 记录中向前多少步
   forward () {
     this.go(1)
   }
 
+  // 通常在服务端渲染的数据预加载时使用。
+  // 返回目标位置或是当前路由匹配的组件数组 (是数组的定义/构造类，不是实例)。
   getMatchedComponents (to?: RawLocation | Route): Array<any> {
     const route: any = to
       ? to.matched
@@ -212,14 +237,15 @@ export default class VueRouter {
     }
     return [].concat.apply(
       [],
-      route.matched.map(m => {
-        return Object.keys(m.components).map(key => {
+      route.matched.map((m) => {
+        return Object.keys(m.components).map((key) => {
           return m.components[key]
         })
       })
     )
   }
 
+  // 解析目标位置
   resolve (
     to: RawLocation,
     current?: Route,
@@ -230,7 +256,7 @@ export default class VueRouter {
     href: string,
     // for backwards compat
     normalizedTo: Location,
-    resolved: Route
+    resolved: Route,
   } {
     current = current || this.history.current
     const location = normalizeLocation(to, current, append, this)
@@ -248,10 +274,13 @@ export default class VueRouter {
     }
   }
 
+  // 获取所有活跃的路由记录列表
   getRoutes () {
     return this.matcher.getRoutes()
   }
 
+  // 添加一条新路由规则。
+  // 如果该路由规则有 name，并且已经存在一个与之相同的名字，则会覆盖它。
   addRoute (parentOrRoute: string | RouteConfig, route?: RouteConfig) {
     this.matcher.addRoute(parentOrRoute, route)
     if (this.history.current !== START) {
@@ -259,9 +288,13 @@ export default class VueRouter {
     }
   }
 
+  // 已废弃：使用 addRoute 替换
   addRoutes (routes: Array<RouteConfig>) {
     if (process.env.NODE_ENV !== 'production') {
-      warn(false, 'router.addRoutes() is deprecated and has been removed in Vue Router 4. Use router.addRoute() instead.')
+      warn(
+        false,
+        'router.addRoutes() is deprecated and has been removed in Vue Router 4. Use router.addRoute() instead.'
+      )
     }
     this.matcher.addRoutes(routes)
     if (this.history.current !== START) {
@@ -290,5 +323,6 @@ VueRouter.NavigationFailureType = NavigationFailureType
 VueRouter.START_LOCATION = START
 
 if (inBrowser && window.Vue) {
+  // 检测到 Vue 是可访问的全局变量时会自动调用 Vue.use()
   window.Vue.use(VueRouter)
 }
