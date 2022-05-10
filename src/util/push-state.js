@@ -5,6 +5,7 @@ import { saveScrollPosition } from './scroll'
 import { genStateKey, setStateKey, getStateKey } from './state-key'
 import { extend } from './misc'
 
+// 判断是否支持 history 模式
 export const supportsPushState =
   inBrowser &&
   (function () {

@@ -26,7 +26,7 @@ export function createRouteMap (
     addRouteRecord(pathList, pathMap, nameMap, route, parentRoute)
   })
 
-  // ensure wildcard routes are always at the end
+  // 确保通配符路由始终在最后
   for (let i = 0, l = pathList.length; i < l; i++) {
     if (pathList[i] === '*') {
       pathList.push(pathList.splice(i, 1)[0])
@@ -35,10 +35,10 @@ export function createRouteMap (
     }
   }
 
+  // 如果路由不包含前导斜杠，则发出警告
   if (process.env.NODE_ENV === 'development') {
-    // warn if routes do not include leading slashes
+    // 筛选缺少前导斜杠的路由
     const found = pathList
-    // check for missing leading slash
       .filter(path => path && path.charAt(0) !== '*' && path.charAt(0) !== '/')
 
     if (found.length > 0) {

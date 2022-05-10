@@ -40,6 +40,7 @@ export default class VueRouter {
   mode: string
   history: HashHistory | HTML5History | AbstractHistory
   matcher: Matcher
+  // 当浏览器不支持 history.pushState 控制路由是否应该回退到 hash 模式。默认值为 true。
   fallback: boolean
   beforeHooks: Array<?NavigationGuard>
   resolveHooks: Array<?NavigationGuard>
@@ -48,6 +49,7 @@ export default class VueRouter {
   // 构造函数
   constructor (options: RouterOptions = {}) {
     if (process.env.NODE_ENV !== 'production') {
+      // 非生产模式下，不是 VueRouter 实例，警告提示
       warn(
         this instanceof VueRouter,
         `Router must be called with the new operator.`
@@ -61,17 +63,21 @@ export default class VueRouter {
     this.afterHooks = []
     this.matcher = createMatcher(options.routes || [], this)
 
+    // 默认 hash 模式
     let mode = options.mode || 'hash'
+    // 当浏览器不支持 history.pushState 控制路由是否应该回退到 hash 模式
     this.fallback =
       mode === 'history' && !supportsPushState && options.fallback !== false
     if (this.fallback) {
       mode = 'hash'
     }
+    // 不在浏览器环境，回退到 abstract 模式
     if (!inBrowser) {
       mode = 'abstract'
     }
     this.mode = mode
 
+    // 根据不同的模式创建相应的 history 对象
     switch (mode) {
       case 'history':
         this.history = new HTML5History(this, options.base)
