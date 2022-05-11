@@ -69,6 +69,7 @@ export function parsePath (path: string): {
   }
 }
 
+// 标准化 Path 中重复的 / 为一个 /；如 //user 变成 /user
 export function cleanPath (path: string): string {
   return path.replace(/\/+/g, '/')
 }

@@ -32,7 +32,10 @@ export function install (Vue) {
       if (isDef(this.$options.router)) {
         this._routerRoot = this
         this._router = this.$options.router
+        // 调用初始化方法
         this._router.init(this)
+        // 在 Vue 上定义 _route 属性，用来监听 current 变化
+        // defineReactive 来源于 Vue 的源码
         Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {
         // 如果$parent存在，则返回$parent._routerRoot；否则返回自身

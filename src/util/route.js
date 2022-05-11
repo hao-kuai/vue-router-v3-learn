@@ -70,6 +70,7 @@ function getFullPath (
   return (path || '/') + stringify(query) + hash
 }
 
+// 判断初始路径
 export function isSameRoute (a: Route, b: ?Route, onlyPath: ?boolean): boolean {
   if (b === START) {
     return a === b

@@ -128,6 +128,7 @@ export default class VueRouter {
 
     // main app previously initialized
     // return as we don't need to set up new history listener
+    // 因为不需要设置新的历史监听器，所以直接 return
     if (this.app) {
       return
     }

@@ -85,6 +85,7 @@ export class HTML5History extends History {
   }
 }
 
+// 获取完整 URL 中除了 base 之外的剩余部分
 export function getLocation (base: string): string {
   let path = window.location.pathname
   const pathLowerCase = path.toLowerCase()

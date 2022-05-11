@@ -308,6 +308,7 @@
         default: 'default'
       }
     },
+    // 渲染函数-函数式组件
     render: function render (_, ref) {
       var props = ref.props;
       var children = ref.children;
@@ -1280,13 +1281,19 @@
   }
 
   var _Vue;
-
+  /*
+  * Vue.js 的插件应该暴露一个 install 方法。
+  * 这个方法的第一个参数是 Vue 构造器，第二个参数是一个可选的选项对象
+  * */
   function install (Vue) {
+    // 防止重复初始化
     if (install.installed && _Vue === Vue) { return }
-    install.installed = true;
 
+    // 标记已挂载并缓存 Vue 对象
+    install.installed = true;
     _Vue = Vue;
 
+    // 判断是否未定义
     var isDef = function (v) { return v !== undefined; };
 
     var registerInstance = function (vm, callVal) {
@@ -1296,6 +1303,9 @@
       }
     };
 
+    // 全局混入：利用混入钩子优先执行原理
+    // 同名钩子函数将合并为一个数组，因此都将被调用。
+    // 另外，混入对象的钩子将在组件自身钩子之前调用。
     Vue.mixin({
       beforeCreate: function beforeCreate () {
         if (isDef(this.$options.router)) {
@@ -1304,6 +1314,7 @@
           this._router.init(this);
           Vue.util.defineReactive(this, '_route', this._router.history.current);
         } else {
+          // 如果$parent存在，则返回$parent._routerRoot；否则返回自身
           this._routerRoot = (this.$parent && this.$parent._routerRoot) || this;
         }
         registerInstance(this, this);
@@ -1313,14 +1324,16 @@
       }
     });
 
+    // Vue 原型挂载 $router 属性，只读
     Object.defineProperty(Vue.prototype, '$router', {
       get: function get () { return this._routerRoot._router }
     });
-
+    // Vue 原型挂载 $route 属性，只读
     Object.defineProperty(Vue.prototype, '$route', {
       get: function get () { return this._routerRoot._route }
     });
 
+    // 注册组件
     Vue.component('RouterView', View);
     Vue.component('RouterLink', Link);
 
@@ -1330,7 +1343,7 @@
   }
 
   /*  */
-
+  // 通过 window 是否存在判断是否浏览器环境
   var inBrowser = typeof window !== 'undefined';
 
   /*  */
@@ -1353,7 +1366,7 @@
       addRouteRecord(pathList, pathMap, nameMap, route, parentRoute);
     });
 
-    // ensure wildcard routes are always at the end
+    // 确保通配符路由始终在最后
     for (var i = 0, l = pathList.length; i < l; i++) {
       if (pathList[i] === '*') {
         pathList.push(pathList.splice(i, 1)[0]);
@@ -1362,10 +1375,10 @@
       }
     }
 
+    // 如果路由不包含前导斜杠，则发出警告
     {
-      // warn if routes do not include leading slashes
+      // 筛选缺少前导斜杠的路由
       var found = pathList
-      // check for missing leading slash
         .filter(function (path) { return path && path.charAt(0) !== '*' && path.charAt(0) !== '/'; });
 
       if (found.length > 0) {
@@ -1549,6 +1562,7 @@
 
 
 
+  // 创建匹配工具
   function createMatcher (
     routes,
     router
@@ -1959,6 +1973,7 @@
 
   /*  */
 
+  // 判断是否支持 history 模式
   var supportsPushState =
     inBrowser &&
     (function () {
@@ -2019,11 +2034,13 @@
   }
 
   // When changing thing, also edit router.d.ts
+
+  // 导航失败类型
   var NavigationFailureType = {
-    redirected: 2,
-    aborted: 4,
-    cancelled: 8,
-    duplicated: 16
+    redirected: 2, // 重定向
+    aborted: 4, // 中止
+    cancelled: 8, // 取消
+    duplicated: 16// 重复
   };
 
   function createNavigationRedirectedError (from, to) {
@@ -2900,7 +2917,11 @@
     if ( options === void 0 ) options = {};
 
     {
-      warn(this instanceof VueRouter, "Router must be called with the new operator.");
+      // 非生产模式下，不是 VueRouter 实例，警告提示
+      warn(
+        this instanceof VueRouter,
+        "Router must be called with the new operator."
+      );
     }
     this.app = null;
     this.apps = [];
@@ -2910,17 +2931,21 @@
     this.afterHooks = [];
     this.matcher = createMatcher(options.routes || [], this);
 
+    // 默认 hash 模式
     var mode = options.mode || 'hash';
+    // 当浏览器不支持 history.pushState 控制路由是否应该回退到 hash 模式
     this.fallback =
       mode === 'history' && !supportsPushState && options.fallback !== false;
     if (this.fallback) {
       mode = 'hash';
     }
+    // 不在浏览器环境，回退到 abstract 模式
     if (!inBrowser) {
       mode = 'abstract';
     }
     this.mode = mode;
 
+    // 根据不同的模式创建相应的 history 对象
     switch (mode) {
       case 'history':
         this.history = new HTML5History(this, options.base);
@@ -3010,26 +3035,34 @@
     });
   };
 
+  // 全局前置守卫
   VueRouter.prototype.beforeEach = function beforeEach (fn) {
     return registerHook(this.beforeHooks, fn)
   };
 
+  // 全局解析守卫
   VueRouter.prototype.beforeResolve = function beforeResolve (fn) {
     return registerHook(this.resolveHooks, fn)
   };
 
+  // 全局后置钩子
   VueRouter.prototype.afterEach = function afterEach (fn) {
     return registerHook(this.afterHooks, fn)
   };
 
+  // 1. 该方法把一个回调排队，在路由完成初始导航时调用，
+  // 2. 这意味着它可以解析所有的异步进入钩子和路由初始化相关联的异步组件。
+  // 3. 可以有效确保服务端渲染时服务端和客户端输出的一致。
   VueRouter.prototype.onReady = function onReady (cb, errorCb) {
     this.history.onReady(cb, errorCb);
   };
 
+  // 注册一个回调，该回调会在路由导航过程中出错时被调用
   VueRouter.prototype.onError = function onError (errorCb) {
     this.history.onError(errorCb);
   };
 
+  // 导航到新的URL；会向 history 栈添加一个新的记录；
   VueRouter.prototype.push = function push (location, onComplete, onAbort) {
       var this$1$1 = this;
 
@@ -3043,6 +3076,7 @@
     }
   };
 
+  // 导航到新的URL；不会向 history 添加新记录，替换掉当前的 history 记录；
   VueRouter.prototype.replace = function replace (location, onComplete, onAbort) {
       var this$1$1 = this;
 
@@ -3056,18 +3090,23 @@
     }
   };
 
+  // 在 history 记录中向前或者后退多少步
   VueRouter.prototype.go = function go (n) {
     this.history.go(n);
   };
 
+  // 在 history 记录中后退多少步
   VueRouter.prototype.back = function back () {
     this.go(-1);
   };
 
+  // 在 history 记录中向前多少步
   VueRouter.prototype.forward = function forward () {
     this.go(1);
   };
 
+  // 通常在服务端渲染的数据预加载时使用。
+  // 返回目标位置或是当前路由匹配的组件数组 (是数组的定义/构造类，不是实例)。
   VueRouter.prototype.getMatchedComponents = function getMatchedComponents (to) {
     var route = to
       ? to.matched
@@ -3087,6 +3126,7 @@
     )
   };
 
+  // 解析目标位置
   VueRouter.prototype.resolve = function resolve (
     to,
     current,
@@ -3108,10 +3148,13 @@
     }
   };
 
+  // 获取所有活跃的路由记录列表
   VueRouter.prototype.getRoutes = function getRoutes () {
     return this.matcher.getRoutes()
   };
 
+  // 添加一条新路由规则。
+  // 如果该路由规则有 name，并且已经存在一个与之相同的名字，则会覆盖它。
   VueRouter.prototype.addRoute = function addRoute (parentOrRoute, route) {
     this.matcher.addRoute(parentOrRoute, route);
     if (this.history.current !== START) {
@@ -3119,9 +3162,13 @@
     }
   };
 
+  // 已废弃：使用 addRoute 替换
   VueRouter.prototype.addRoutes = function addRoutes (routes) {
     {
-      warn(false, 'router.addRoutes() is deprecated and has been removed in Vue Router 4. Use router.addRoute() instead.');
+      warn(
+        false,
+        'router.addRoutes() is deprecated and has been removed in Vue Router 4. Use router.addRoute() instead.'
+      );
     }
     this.matcher.addRoutes(routes);
     if (this.history.current !== START) {
@@ -3151,6 +3198,7 @@
   VueRouter.START_LOCATION = START;
 
   if (inBrowser && window.Vue) {
+    // 检测到 Vue 是可访问的全局变量时会自动调用 Vue.use()
     window.Vue.use(VueRouter);
   }
 

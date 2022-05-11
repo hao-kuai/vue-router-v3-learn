@@ -267,6 +267,7 @@ export class History {
   }
 }
 
+// 标准化根路径
 function normalizeBase (base: ?string): string {
   if (!base) {
     if (inBrowser) {
@@ -279,11 +280,11 @@ function normalizeBase (base: ?string): string {
       base = '/'
     }
   }
-  // make sure there's the starting slash
+  // 确保 / 开头
   if (base.charAt(0) !== '/') {
     base = '/' + base
   }
-  // remove trailing slash
+  // 删除尾部的 /
   return base.replace(/\/$/, '')
 }
 
