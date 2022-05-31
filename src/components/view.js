@@ -25,6 +25,7 @@ export default {
 
     // determine current view depth, also check to see if the tree
     // has been toggled inactive but kept-alive.
+    // 确定当前视图深度，还检查树是否已切换为非活动但 kept-alive 。
     let depth = 0
     let inactive = false
     while (parent && parent._routerRoot !== parent) {
@@ -40,6 +41,7 @@ export default {
     data.routerViewDepth = depth
 
     // render previous view if the tree is inactive and kept-alive
+    // 如果树处于非活动状态且 kept-alive，则呈现上一个视图
     if (inactive) {
       const cachedData = cache[name]
       const cachedComponent = cachedData && cachedData.component
@@ -60,16 +62,19 @@ export default {
     const component = matched && matched.components[name]
 
     // render empty node if no matched route or no config component
+    // 如果没有匹配的路由或没有配置组件，则呈现空节点
     if (!matched || !component) {
       cache[name] = null
       return h()
     }
 
     // cache component
+    // 缓存组件
     cache[name] = { component }
 
     // attach instance registration hook
     // this will be called in the instance's injected lifecycle hooks
+    // 附加实例注册钩子，这将在实例的注入生命周期钩子中调用
     data.registerRouteInstance = (vm, val) => {
       // val could be undefined for unregistration
       const current = matched.instances[name]
@@ -100,6 +105,8 @@ export default {
       // if the route transition has already been confirmed then we weren't
       // able to call the cbs during confirmation as the component was not
       // registered yet, so we call it here.
+      // 如果路由转换已经被确认，那么在确认过程中我们无法调用 cbs，
+      // 因为组件还没有注册，所以我们在这里调用它。
       handleRouteEntered(route)
     }
 
@@ -134,6 +141,10 @@ function fillPropsinData (component, data, route, configProps) {
   }
 }
 
+/**
+ * 解析 Props
+ * 注：config 期望类型 object, function or boolean
+ * */
 function resolveProps (route, config) {
   switch (typeof config) {
     case 'undefined':

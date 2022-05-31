@@ -64,14 +64,17 @@ function addRouteRecord (
 ) {
   const { path, name } = route
   if (process.env.NODE_ENV !== 'production') {
+    // path 不能为空
+    // !== 和 != 不同 （undefined != null -》false； undefined !== null -》true）
     assert(path != null, `"path" is required in a route configuration.`)
+    // component 不能是字符串，需要是对象
     assert(
       typeof route.component !== 'string',
       `route config "component" for path: ${String(
         path || name
       )} cannot be a ` + `string id. Use an actual component instead.`
     )
-
+    // path 中不能有未编码的特殊字符
     warn(
       // eslint-disable-next-line no-control-regex
       !/[^\u0000-\u007F]+/.test(path),
@@ -89,6 +92,7 @@ function addRouteRecord (
     pathToRegexpOptions.sensitive = route.caseSensitive
   }
 
+  // 根据route（RouteRecord） 生成 record（RouteRecord）
   const record: RouteRecord = {
     path: normalizedPath,
     regex: compileRouteRegex(normalizedPath, pathToRegexpOptions),
@@ -114,6 +118,7 @@ function addRouteRecord (
           : { default: route.props }
   }
 
+  // 如果有 children 有数据，递归添加记录
   if (route.children) {
     // Warn if route is named, does not redirect and has a default child route.
     // If users navigate to this route by name, the default child will
@@ -145,14 +150,19 @@ function addRouteRecord (
   }
 
   if (!pathMap[record.path]) {
+    // 构建 path 数组
     pathList.push(record.path)
+    // 根据 path 构建映射对象
     pathMap[record.path] = record
   }
 
+  // 有别名配置将别名转成 path，循环递归添加记录
   if (route.alias !== undefined) {
     const aliases = Array.isArray(route.alias) ? route.alias : [route.alias]
     for (let i = 0; i < aliases.length; ++i) {
       const alias = aliases[i]
+
+      // path 和 alias 冲突，在开发模式下做冲突提示
       if (process.env.NODE_ENV !== 'production' && alias === path) {
         warn(
           false,
@@ -177,10 +187,12 @@ function addRouteRecord (
     }
   }
 
+  // 根据 name 构建映射对象
   if (name) {
     if (!nameMap[name]) {
       nameMap[name] = record
     } else if (process.env.NODE_ENV !== 'production' && !matchAs) {
+      // name 重复且没有 matchAs， 提示不能重复
       warn(
         false,
         `Duplicate named routes definition: ` +

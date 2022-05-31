@@ -51,32 +51,34 @@ declare type RedirectOption = RawLocation | ((to: Route) => RawLocation)
 declare type RouteConfig = {
   path: string;
   name?: string;
-  component?: any;
   components?: Dictionary<any>;
   redirect?: RedirectOption;
   alias?: string | Array<string>;
-  children?: Array<RouteConfig>;
   beforeEnter?: NavigationGuard;
   meta?: any;
   props?: boolean | Object | Function;
+  // 以下为不同属性
+  component?: any;
+  children?: Array<RouteConfig>;
   caseSensitive?: boolean;
   pathToRegexpOptions?: PathToRegexpOptions;
 }
 
 declare type RouteRecord = {
   path: string;
-  alias: Array<string>;
-  regex: RouteRegExp;
-  components: Dictionary<any>;
-  instances: Dictionary<any>;
-  enteredCbs: Dictionary<Array<Function>>;
   name: ?string;
-  parent: ?RouteRecord;
+  components: Dictionary<any>;
   redirect: ?RedirectOption;
-  matchAs: ?string;
+  alias: Array<string>;
   beforeEnter: ?NavigationGuard;
   meta: any;
   props: boolean | Object | Function | Dictionary<boolean | Object | Function>;
+  // 以下为不同属性
+  regex: RouteRegExp;
+  instances: Dictionary<any>;
+  enteredCbs: Dictionary<Array<Function>>;
+  parent: ?RouteRecord;
+  matchAs: ?string;
 }
 
 declare type Location = {
